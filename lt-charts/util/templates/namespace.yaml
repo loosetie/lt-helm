@@ -1,0 +1,50 @@
+{{ $cmpDef := .Values.namespace }}
+{{ $nsLabels := $cmpDef.labels -}}
+{{ $nsAnnotations := $cmpDef.annotations -}}
+{{ if or (not (empty $nsLabels)) (not (empty $nsAnnotations)) -}}
+{{ $labels := include "ltutil.labels" . }}
+{{ $executionNamespace := $cmpDef.executionNamespace }}
+{{ $targetNamespace := .Release.Namespace }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "label-ns-%s" .Release.Name }}
+  namespace: {{ $executionNamespace }}
+  labels:
+{{ $labels | indent 4 }}
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded, before-hook-creation
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.namespace.serviceAccount }}
+      containers:
+        {{ if not (empty $nsLabels) -}}
+        - name: labeler
+          image: gcr.io/google_containers/hyperkube:v1.14.6
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              kubectl label namespace {{ $targetNamespace }} \
+              {{ range $name, $value := $nsLabels -}}
+              {{ printf "%s=%s" $name $value }} \
+              {{ end -}}
+              --overwrite
+        {{ end -}}
+        {{ if not (empty $nsAnnotations) -}}
+        - name: annotator
+          image: gcr.io/google_containers/hyperkube:v1.14.6
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              kubectl annotate namespace {{ $targetNamespace }} \
+              {{ range $name, $value := $nsAnnotations -}}
+              {{ printf "%s=%s" $name $value }} \
+              {{ end -}}
+              --overwrite
+        {{ end -}}
+{{- end }}

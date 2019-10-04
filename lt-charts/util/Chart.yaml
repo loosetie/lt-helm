@@ -1,0 +1,5 @@
+# This is a fork of https://github.com/ceph/ceph-helm with subpath ceph/helm-toolkit
+apiVersion: v1
+description: Utilities for helm charts
+name: util
+version: 1.0.0
