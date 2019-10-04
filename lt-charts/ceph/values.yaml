@@ -1,0 +1,107 @@
+
+rancher:
+  project: "c-7xmb9:p-2fqzk"
+
+
+ceph-helm:
+  deployment:
+    ceph: false # set to false und upgrade to true
+    storage_secrets: true
+    client_secrets: true
+    rbd_provisioner: true
+    rgw_keystone_user_and_endpoints: false
+
+  manifests:
+    deployment_rgw: false
+
+#  ceph:
+#    enabled:
+#      rgw: false
+
+  images:
+    ks_user: docker.io/kolla/ubuntu-source-heat-engine:3.0.3
+    ks_service: docker.io/kolla/ubuntu-source-heat-engine:3.0.3
+    ks_endpoints: docker.io/kolla/ubuntu-source-heat-engine:3.0.3
+    bootstrap: docker.io/ceph/daemon:tag-build-master-luminous-ubuntu-16.04 # v3.2.6-stable-3.2-luminous-centos-7 v4.0.3-stable-4.0-nautilus-centos-7
+    dep_check: docker.io/kolla/ubuntu-source-kubernetes-entrypoint:4.0.0
+    daemon: docker.io/ceph/daemon:tag-build-master-luminous-ubuntu-16.04 # v3.2.6-stable-3.2-luminous-centos-7 v4.0.3-stable-4.0-nautilus-centos-7
+    ceph_config_helper: docker.io/port/ceph-config-helper:v1.7.5 # v1.10.3
+    rbd_provisioner: quay.io/external_storage/rbd-provisioner:v2.1.1-k8s1.11
+    minimal: docker.io/alpine:3.10.2
+    pull_policy: "IfNotPresent"
+
+  # Use a network which includes all storage nodes
+  network:
+    public: 10.10.40.0/24
+    cluster: 10.10.40.0/24
+
+  # The available block devices (one per path, not per node)
+  # The device name will be used as a node tag: ceph-osd-device-[NAME]=enabled together with ceph-osd=enabled
+  osd_devices:
+    - name: dev-vda
+      device: /dev/vda
+      #journal: /dev/sdf # if the device is not an ssd, pointing this to an ssd improves performance
+      zap: "1"
+
+  # /!\ /!\
+  # To allow for a disk to be zapped, set zap: "1" on each
+  # device and enable_zap_and_potentially_lose_data: true
+  # While we prevent you from zapping a drive that belonged
+  # to this cluster, if a drive belonged to another cluster or
+  # has important data from another application, it will be *LOST*
+  # /!\ /!\
+  enable_zap_and_potentially_lose_data: false
+
+  # Settings for the storage-class available in k8s
+  storageclass:
+    name: ceph-rbd
+    pool: rbd
+    user_id: k8s
+
+  # Hint: Requests are defined by the parent chart
+  pod:
+    resources:
+      enabled: true
+      osd:
+        limits:
+          memory: "1024Mi"
+          cpu: "1000m"
+      mds:
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
+      mon:
+        limits:
+          memory: "100Mi"
+          cpu: "500m"
+      mon_check:
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
+      rgw:
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
+      rbd_provisioner:
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
+      mgr:
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
+
+
+  # For a list of available modules:
+  #  http://docs.ceph.com/docs/master/mgr/
+  ceph_mgr_enabled_modules:
+    - restful
+    - status
+    - dashboard
+  #  - prometheus
+
+  ceph_mgr_modules_config:
+    dashboard:
+      port: 7000
+  #  prometheus:
+  #    server_port: 9283

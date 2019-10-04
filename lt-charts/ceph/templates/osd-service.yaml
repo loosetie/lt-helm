@@ -1,0 +1,19 @@
+{{- if .Values.ceph_helm.manifests.daemonset_osd }}
+{{- $envAll := . }}
+{{- if .Values.ceph_helm.deployment.ceph }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ceph-osd
+spec:
+  clusterIP: None
+  ports:
+    - port: 6800
+      protocol: TCP
+      targetPort: 6800
+  publishNotReadyAddresses: true
+  selector:
+{{ tuple $envAll "ceph" "osd" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{- end }}
+{{- end }}

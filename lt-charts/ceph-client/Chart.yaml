@@ -1,0 +1,6 @@
+# This chart is intended to be used for every newly created namespace, which uses ceph
+
+apiVersion: v1
+description: LT Ceph-Helm Client Namepace
+name: ceph-client
+version: 1.0.0

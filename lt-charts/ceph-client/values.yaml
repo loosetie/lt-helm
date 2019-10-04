@@ -1,0 +1,11 @@
+
+image: gcr.io/google_containers/hyperkube:v1.14.6
+
+cephNamespace: ceph
+# Service account with access to the release and the ceph namespace
+serviceAccount: #tiller
+helmHook: post-install
+
+secretsToCopy:
+  - pvc-ceph-client-key
+  - pvc-ceph-conf-combined-storageclass
