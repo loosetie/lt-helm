@@ -1,0 +1,3 @@
+[submodule "3rdparty/postgres-operator"]
+	path = 3rdparty/postgres-operator
+	url = git@github.com:zalando/postgres-operator.git
