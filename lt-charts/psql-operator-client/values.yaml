@@ -1,0 +1,2 @@
+# Check your operator installation for the correct name. By default it's "${HELM_NAME}-${CHART_NAME}"
+serviceAccountName: zalando-postgres-operator

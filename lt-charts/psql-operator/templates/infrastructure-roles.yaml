@@ -1,0 +1,29 @@
+{{ $name := .Values.rolesSecretName -}}
+{{ if not (empty $name) -}}
+{{ $labels := include "ltutil.labels" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name | quote }}
+  labels:
+{{ $labels | indent 4 }}
+data:
+  maintain: |
+    inrole: [operator, admin]
+    user_flags:
+      - superuser
+      - createdb
+    db_parameters:
+      log_statement: all
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name | quote }}
+  labels:
+{{ $labels | indent 4 }}
+type: Opaque
+data:
+  maintain: {{ "12345" | b64enc | quote }}
+{{- end }}

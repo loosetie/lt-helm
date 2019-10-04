@@ -1,0 +1,16 @@
+{{ $cmpDef := .Values.ui -}}
+{{ $labels := tuple . $cmpDef.name | include "ltutil.labelall" -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $cmpDef.longName | quote }}
+  labels:
+{{ $labels | indent 4 }}
+spec:
+  rules:
+    - host: {{ printf "%s.test.intern" $cmpDef.expose.http.host | quote }}
+      http:
+        paths:
+          - backend:
+              serviceName: {{ $cmpDef.longName | quote }}
+              servicePort: {{ $cmpDef.expose.http.port }}

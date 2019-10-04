@@ -1,0 +1,65 @@
+{{ $cmpDef := .Values.ui -}}
+{{ $labels := tuple . $cmpDef.name | include "ltutil.labelall" -}}
+{{ $labelsShort := tuple . $cmpDef.name | include "ltutil.labelshortall" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $cmpDef.longName | quote }}
+  labels:
+{{ $labels | indent 4 }}
+    team: {{ .Values.team }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+{{ $labelsShort | indent 8 }}
+  template:
+    metadata:
+      labels:
+{{ $labels | indent 8 }}
+        team: {{ .Values.team }}
+    spec:
+      serviceAccountName: postgres-operator-ui
+      containers:
+        - name: "service"
+          image: {{ printf "%s:%s" $cmpDef.image.name $cmpDef.image.tag }}
+          ports:
+            - containerPort: 8081
+              protocol: "TCP"
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: 8081
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          resources:
+{{ toYaml $cmpDef.resources | indent 12 }}
+          env:
+            - name: "APP_URL"
+              value: "http://localhost:8081"
+            - name: "OPERATOR_API_URL"
+              value: "http://localhost:8080"
+            - name: "TARGET_NAMESPACE"
+              value: "*"
+            - name: "TEAMS"
+              value: |-
+                [
+                  "acid"
+                ]
+            - name: "OPERATOR_UI_CONFIG"
+              value: |-
+                {
+                  "docs_link":"https://postgres-operator.readthedocs.io/en/latest/",
+                  "dns_format_string": "{1}-{0}.{2}",
+                  "databases_visible": true,
+                  "master_load_balancer_visible": true,
+                  "nat_gateways_visible": false,
+                  "replica_load_balancer_visible": true,
+                  "resources_visible": true,
+                  "users_visible": true,
+                  "postgresql_versions": [
+                    "11",
+                    "10",
+                    "9.6"
+                  ]
+                }
