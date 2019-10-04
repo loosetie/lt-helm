@@ -1,0 +1,6 @@
+# This is a fork of https://github.com/ceph/ceph-helm with subpath ceph/ceph
+apiVersion: v1
+description: Ceph-Helm
+name: ceph-helm
+version: 1.0.0
+

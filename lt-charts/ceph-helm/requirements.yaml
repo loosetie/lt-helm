@@ -1,0 +1,6 @@
+
+dependencies:
+  - name: ceph-helm-toolkit
+    repository: "file://../ceph-helm-toolkit"
+    version: 1.0.0
+    alias: helm_toolkit
