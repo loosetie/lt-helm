@@ -4,7 +4,6 @@ rancher:
 clusterAdmin: true
 serviceAccountName: "postgres-operator-ui"
 baseName: "postgres-operator"
-rolesSecretName: &rolesSecretName postgresql-infrastructure-roles
 team: "acid"
 
 postgres-operator:
@@ -12,9 +11,9 @@ postgres-operator:
   configKubernetes:
     # toggles pod anti affinity on the Postgres pods
     enable_pod_antiaffinity: "true"
-    infrastructure_roles_secret_name: *rolesSecretName
+    infrastructure_roles_secret_name: postgresql-infrastructure-roles
     spilo_privileged: "true"
-    secret_name_template: {cluster}.credentials.{username}
+    secret_name_template: "{cluster}.credentials.{username}"
 
   # configure resource requests for the Postgres pods
   configPostgresPodResources:
