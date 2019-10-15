@@ -41,6 +41,7 @@ spec:
             - "app.kubernetes.io/instance={{ .Release.Name }}"
             - "app.kubernetes.io/managed-by={{ .Release.Service }}"
             - "helm.sh/chart={{ printf "%s-%s" .Chart.Name .Chart.Version }}"
+            - --overwrite
         - name: annotator
           image: gcr.io/google_containers/hyperkube:v1.14.6
           command:
@@ -49,3 +50,4 @@ spec:
             - namespace
             - {{ .Release.Namespace }}
             - "field.cattle.io/projectId={{ .Values.rancher.project }}"
+            - --overwrite
