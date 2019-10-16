@@ -62,20 +62,6 @@ parameters:
   adminSecretNamespace: {{ .Release.Namespace }}
   claimRoot: /pvc-volumes
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ceph-mon-lb
-  labels:
-{{ $labels | indent 4 }}
-spec:
-  ports:
-    - port: 6789
-      protocol: TCP
-      targetPort: 6789
-  selector:
-{{ tuple $envAll "ceph" "mon" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 {{- end }}
 {{- end }}
 {{- end }}
