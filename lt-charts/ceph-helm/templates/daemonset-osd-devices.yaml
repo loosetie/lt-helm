@@ -18,20 +18,27 @@
 {{- if not .Values.osd_directory.enabled }}
 {{- $dependencies := .Values.dependencies.osd }}
 {{ range $index, $value := .Values.osd_devices }}
+{{ $deviceLabel := printf "device: \"%s\"" $value.name }}
+{{ $labels := printf "%s\n%s" (tuple $envAll "ceph" "osd" | include "helm-toolkit.snippets.kubernetes_metadata_labels") $deviceLabel }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: ceph-osd-{{ $value.name }}
+  labels:
+{{ $labels | indent 4 }}
 spec:
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "ceph" "osd" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
     spec:
       nodeSelector:
         {{ $.Values.labels.osd.node_selector_key }}: {{ $.Values.labels.osd.node_selector_value }}
-        ceph-osd-device-{{ $value.name}}: enabled
+        ceph-osd-device-{{ $value.name }}: enabled
       hostNetwork: true
       hostPID: true
       dnsPolicy: {{ $.Values.pod.dns_policy }}

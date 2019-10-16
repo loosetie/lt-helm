@@ -19,16 +19,22 @@ limitations under the License.
 {{- if .Values.deployment.ceph }}
 {{- if .Values.osd_directory.enabled }}
 {{- $dependencies := .Values.dependencies.osd }}
+{{- $labels := tuple $envAll "ceph" "osd" | include "helm-toolkit.snippets.kubernetes_metadata_labels"}}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: ceph-osd
+  labels:
+{{ $labels | indent 4 }}
 spec:
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "ceph" "osd" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
     spec:
       nodeSelector:
         {{ .Values.labels.osd.node_selector_key }}: {{ .Values.labels.osd.node_selector_value }}

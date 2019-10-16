@@ -3,16 +3,21 @@ rancher:
   project: "c-7xmb9:p-2fqzk"
 
 
-ceph-helm:
+ceph_helm:
   deployment:
     ceph: false # set to false und upgrade to true
     storage_secrets: true
     client_secrets: true
     rbd_provisioner: true
+    fs_provisioner: true
     rgw_keystone_user_and_endpoints: false
+    job_namespace_client_key_cleaner: false
 
   manifests:
     deployment_rgw: false
+    deployment_fs_provisioner: true
+    storageclass_fs: true
+    job_storage_admin_keys_cleaner: false
 
 #  ceph:
 #    enabled:
@@ -27,8 +32,15 @@ ceph-helm:
     daemon: docker.io/ceph/daemon:tag-build-master-luminous-ubuntu-16.04 # v3.2.6-stable-3.2-luminous-centos-7 v4.0.3-stable-4.0-nautilus-centos-7
     ceph_config_helper: docker.io/port/ceph-config-helper:v1.7.5 # v1.10.3
     rbd_provisioner: quay.io/external_storage/rbd-provisioner:v2.1.1-k8s1.11
+    fs_provisioner: quay.io/external_storage/cephfs-provisioner:v2.1.0-k8s1.11
     minimal: docker.io/alpine:3.10.2
     pull_policy: "IfNotPresent"
+
+  conf:
+    ceph:
+      config:
+        global:
+          mon_host: 10.10.40.11
 
   # Use a network which includes all storage nodes
   network:
@@ -58,8 +70,18 @@ ceph-helm:
     pool: rbd
     user_id: k8s
 
+  storageclass_fs:
+    provisioner: ceph.com/cephfs
+    name: ceph-fs
+    monitors: null
+    admin_id: admin
+    admin_secret_name: pvc-ceph-conf-combined-storageclass
+    admin_secret_namespace: ceph
+
   # Hint: Requests are defined by the parent chart
   pod:
+    replicas:
+      fs_provisioner: 1
     resources:
       enabled: true
       osd:
@@ -86,6 +108,13 @@ ceph-helm:
         limits:
           memory: "50Mi"
           cpu: "500m"
+      fs_provisioner:
+        requests:
+          memory: "50Mi"
+          cpu: "100m"
+        limits:
+          memory: "50Mi"
+          cpu: "500m"
       mgr:
         limits:
           memory: "50Mi"
@@ -105,3 +134,10 @@ ceph-helm:
       port: 7000
   #  prometheus:
   #    server_port: 9283
+
+  dependencies:
+    fs_provisioner:
+      jobs:
+      services:
+        - service: ceph_mgr
+          endpoint: internal

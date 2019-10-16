@@ -44,11 +44,34 @@
 
 1.  Install the chart in two steps
     ```bash
+    NAMESPACE=ceph
     # Just the Secrets/Services (TODO don't create secrets with k8s Jobs)
-    helm install --name=ceph --namespace=ceph . --set ceph.deployment.ceph=false
+    helm install --name=ceph --namespace=${NAMESPACE} . --set ceph.deployment.ceph=false
     
     # Add the Applications
-    helm upgrade ceph . --set ceph.deployment.ceph=true
+    helm upgrade ceph . --cleanup-on-fail --set ceph_helm.deployment.ceph=true
+    ```
+    
+1.  Create a pool
+    ```bash
+    NAMESPACE=ceph
+    kubectl -n ${NAMESPACE} exec -ti ceph-mon-cppdk -c ceph-mon --\
+      ceph osd pool create rbd 100
+    ```
+    The last number is the amount of [placement groups](https://docs.ceph.com/docs/mimic/rados/operations/placement-groups/#set-the-number-of-placement-groups)
+    which you may increase if needed
+    
+1.  Create the user secret
+    On any "mon" instance execute
+    ```bash
+    NAMESPACE=ceph
+    kubectl -n ${NAMESPACE} exec -ti ceph-mon-cppdk -c ceph-mon --\
+      ceph auth get-or-create-key client.k8s mon 'allow r' osd 'allow rwx pool=rbd' | base64
+    ```
+    And add the result as the value in
+    ```bash
+    NAMESPACE=ceph
+    kubectl -n ${NAMESPACE} edit secrets/pvc-ceph-client-key
     ```
     
 1.  Use the `ceph-client` chart to enable namespaces to use the ceph cluster

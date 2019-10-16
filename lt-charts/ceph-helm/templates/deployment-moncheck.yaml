@@ -18,23 +18,29 @@ limitations under the License.
 {{- $envAll := . }}
 {{- if .Values.deployment.ceph }}
 {{- $dependencies := .Values.dependencies.moncheck }}
+{{- $labels := tuple $envAll "ceph" "moncheck" | include "helm-toolkit.snippets.kubernetes_metadata_labels" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ceph-mon-check
+  labels:
+{{ $labels | indent 4 }}
 spec:
   replicas: {{ .Values.pod.replicas.mon_check }}
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "ceph" "moncheck" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
     spec:
       affinity:
 {{ tuple $envAll "ceph" "moncheck" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | indent 8 }}
       nodeSelector:
         {{ .Values.labels.mon.node_selector_key }}: {{ .Values.labels.mon.node_selector_value }}
-      serviceAccount: default
+      serviceAccountName: default
       initContainers:
 {{ tuple $envAll $dependencies "" | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
         - name: ceph-init-dirs

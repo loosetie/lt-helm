@@ -1,0 +1,82 @@
+{{- $def := .Values.ceph_helm }}
+{{- if $def.manifests.deployment_fs_provisioner }}
+{{- $envAll := . }}
+{{- if $def.deployment.rbd_provisioner }}
+{{- $dependencies := $def.dependencies.fs_provisioner }}
+{{- $labels := tuple $envAll "ceph" "fs-provisioner" | include "helm-toolkit.snippets.kubernetes_metadata_labels" }}
+{{- $namespace := .Release.Namespace }}
+{{ $name := printf "%s-provisioner" $def.storageclass_fs.name }}
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ $namespace | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services"]
+    resourceNames: ["kube-dns","coredns"]
+    verbs: ["list", "get"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $name | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name | quote }}
+    namespace: {{ $namespace | quote }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $name | quote }}
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ $namespace | quote }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "delete"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ $namespace | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name | quote }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ $namespace | quote }}
+
+{{- end }}
+{{- end }}

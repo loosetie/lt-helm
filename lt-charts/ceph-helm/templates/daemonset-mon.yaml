@@ -18,22 +18,28 @@ limitations under the License.
 {{- $envAll := . }}
 {{- if .Values.deployment.ceph }}
 {{- $dependencies := .Values.dependencies.mon }}
+{{- $labels := tuple $envAll "ceph" "mon" | include "helm-toolkit.snippets.kubernetes_metadata_labels" }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: ceph-mon
+  labels:
+{{ $labels | indent 4 }}
 spec:
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "ceph" "mon" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
     spec:
       nodeSelector:
         {{ .Values.labels.mon.node_selector_key }}: {{ .Values.labels.mon.node_selector_value }}
       hostNetwork: true
       dnsPolicy: {{ .Values.pod.dns_policy }}
-      serviceAccount: default
+      serviceAccountName: default
       initContainers:
 {{ tuple $envAll $dependencies "" | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
         - name: ceph-init-dirs

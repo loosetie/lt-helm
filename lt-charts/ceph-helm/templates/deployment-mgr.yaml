@@ -19,19 +19,25 @@ limitations under the License.
 {{- if .Values.deployment.ceph }}
 {{- if .Values.ceph.enabled.mgr }}
 {{- $dependencies := .Values.dependencies.mgr }}
+{{- $labels := tuple $envAll "ceph" "mgr" | include "helm-toolkit.snippets.kubernetes_metadata_labels" }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ceph-mgr
+  labels:
+{{ $labels | indent 4 }}
 spec:
   replicas: {{ .Values.pod.replicas.mgr }}
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-{{ tuple $envAll "ceph" "mgr" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
     spec:
       affinity:
 {{ tuple $envAll "ceph" "mgr" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | indent 8 }}
@@ -39,7 +45,7 @@ spec:
         {{ .Values.labels.mgr.node_selector_key }}: {{ .Values.labels.mgr.node_selector_value }}
       hostNetwork: true
       dnsPolicy: {{ .Values.pod.dns_policy }}
-      serviceAccount: default
+      serviceAccountName: default
       initContainers:
 {{ tuple $envAll $dependencies "" | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
         - name: ceph-init-dirs

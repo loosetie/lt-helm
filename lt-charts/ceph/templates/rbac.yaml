@@ -45,7 +45,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: role-ceph
-  namespace: ceph
+  namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -73,7 +73,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: role-ceph-in-ceph
-  namespace: ceph
+  namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -81,7 +81,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: ceph
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -107,7 +107,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: ceph
+  namespace: {{ .Release.Namespace }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -121,6 +121,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: ceph
+  namespace: {{ .Release.Namespace }}
 
 

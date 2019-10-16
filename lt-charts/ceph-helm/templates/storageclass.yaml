@@ -27,7 +27,7 @@ parameters:
     monitors: {{ tuple "ceph_mon" "internal" "mon" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" }}
     adminId: {{ .Values.storageclass.admin_id }}
     adminSecretName: {{ .Values.storageclass.admin_secret_name }}
-    adminSecretNamespace: {{ .Values.storageclass.admin_secret_namespace }}
+    adminSecretNamespace: {{ .Release.Namespace }}
     pool: {{ .Values.storageclass.pool }}
     userId: {{ .Values.storageclass.user_id }}
     userSecretName: {{ .Values.storageclass.user_secret_name }}

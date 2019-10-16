@@ -1,0 +1,81 @@
+{{- $def := .Values.ceph_helm }}
+{{- if $def.manifests.deployment_fs_provisioner }}
+{{- $envAll := . }}
+{{- if $def.deployment.rbd_provisioner }}
+{{- $dependencies := $def.dependencies.fs_provisioner }}
+{{ $labels := tuple $envAll "ceph" "fs-provisioner" | include "helm-toolkit.snippets.kubernetes_metadata_labels" }}
+{{ $name := printf "%s-provisioner" $def.storageclass_fs.name }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name | quote }}
+  labels:
+{{ $labels | indent 4 }}
+spec:
+  replicas: {{ $def.pod.replicas.fs_provisioner }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ $labels | indent 8 }}
+    spec:
+      hostNetwork: true
+      serviceAccountName: ceph-fs-provisioner
+      containers:
+        - name: {{ $name | quote }}
+          image: {{ $def.images.fs_provisioner }}
+          imagePullPolicy: {{ $def.images.pull_policy }}
+          securityContext:
+            privileged: true
+          resources:
+{{ toYaml $def.pod.resources.fs_provisioner | indent 12 }}
+          env:
+            - name: PROVISIONER_NAME
+              value: {{ $def.storageclass_fs.provisioner }}
+            - name: PROVISIONER_SECRET_NAMESPACE
+              value: {{ .Release.Namespace }}
+          command:
+            - "/usr/local/bin/cephfs-provisioner"
+          args:
+            - "-id=cephfs-provisioner-1"
+
+---
+{{- if $def.manifests.storageclass_fs }}
+{{ $scDef := $def.storageclass_fs }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ $scDef.name }}
+provisioner: {{ $scDef.provisioner }}
+parameters:
+  {{- if empty $def.conf.ceph.config.global.mon_host }}
+  monitors: {{ printf "%s.%s.svc.cluster.local:%1.f" "ceph-mon" .Release.Namespace $def.network.port.mon | quote }}
+  {{- else }}
+  monitors: {{ printf "%s:%1.f" $def.conf.ceph.config.global.mon_host $def.network.port.mon | quote }}
+  {{- end }}
+  adminId: {{ $scDef.admin_id }}
+  adminSecretName: {{ $scDef.admin_secret_name }}
+  adminSecretNamespace: {{ .Release.Namespace }}
+  claimRoot: /pvc-volumes
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ceph-mon-lb
+  labels:
+{{ $labels | indent 4 }}
+spec:
+  ports:
+    - port: 6789
+      protocol: TCP
+      targetPort: 6789
+  selector:
+{{ tuple $envAll "ceph" "mon" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
