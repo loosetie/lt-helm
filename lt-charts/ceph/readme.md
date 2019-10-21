@@ -1,20 +1,44 @@
-# Ceph Setup
+# loosetie Ceph chart
+This chart uses the original [ceph-helm](https://github.com/ceph/ceph-helm) chart
+and made it work an k8s 1.14.6 on a bare-metal environment 
     
-1.  Create a own values.yaml and override at least the following values
+1.  Create a values.yaml and override at least the following values
     ```yaml
+    # If you're using rancher you can set the project id here to automatically add the namespace to your rancher project
+    # the id can be found in the url i.e. https://rancher.intern/p/c-7xmb9:p-tlg5p/workloads
+    rancher:
+      project: "c-7xmb9:p-2fqzk"
+    
     ceph-helm:
+      # this is the node network, in which all the cluster nodes
       network:
         public: 10.10.40.0/24
         cluster: 10.10.40.0/24
     
+      # this is a workaround because mgr has to run in the host network,
+      # where the kube-dns is not available
+      conf:
+        ceph:
+          config:
+            global:
+              mon_host: 10.10.40.11
+    
+      # per path to the ceph block device (an empty partition)
       osd_devices:
         - name: dev-vda
           device: /dev/vda
           zap: "1"
     ```
-    -   network ist the node network where all ceph cluster nodes are in the same network
-    -   osd_devices is per path to the ceph block device (an empty partition)
-    
+
+1.  Install ceph client on the storage nodes and enable the required kernel module
+
+    ```bash
+    apt update &&\
+    apt install ceph-common python-rbd &&\
+    modprobe rbd &&\
+    echo "rbd" > /etc/modules
+    ```
+
 1.  Label the nodes (the following line are an example for a cluster with 3 nodes called test01..03)
     ```bash
     # Monitor (min 3)
@@ -74,4 +98,5 @@
     kubectl -n ${NAMESPACE} edit secrets/pvc-ceph-client-key
     ```
     
-1.  Use the `ceph-client` chart to enable namespaces to use the ceph cluster
+1.  Use the `ceph-client` chart to enable namespaces to use the ceph cluster.
+    The StorageClasses are named `ceph-rbd` and `ceph-fs` by default

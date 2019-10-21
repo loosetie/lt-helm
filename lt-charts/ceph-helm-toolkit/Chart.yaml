@@ -1,5 +1,5 @@
-# This is a fork of https://github.com/ceph/ceph-helm with subpath ceph/helm-toolkit
+# This is a fork of https://github.com/ceph/ceph-helm with subpath ceph/helm-toolkit (commit 743a7441ba4361866a6e017b4f8fa5c15e34e640)
 apiVersion: v1
-description: A base chart for all openstack charts
+description: ceph-helm base chart (This chart is not meant to be installed, use ceph)
 name: ceph-helm-toolkit
 version: 1.0.0

@@ -40,7 +40,7 @@ ceph_helm:
     ceph:
       config:
         global:
-          mon_host: 10.10.40.11
+          mon_host: 10.10.40.11 # this is a workaround because mgr has to run in the host network, where the kube-dns is not available
 
   # Use a network which includes all storage nodes
   network:

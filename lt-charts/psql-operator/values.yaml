@@ -2,8 +2,7 @@
 rancher:
   project: "c-7xmb9:p-2fqzk"
 clusterAdmin: true
-serviceAccountName: "postgres-operator-ui"
-baseName: "postgres-operator"
+# The primary team for the ui
 team: "acid"
 
 postgres-operator:

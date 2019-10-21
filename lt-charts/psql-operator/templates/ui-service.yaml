@@ -1,7 +1,7 @@
 {{ $cmpDef := .Values.ui -}}
-{{ $labels := tuple . $cmpDef.name | include "ltutil.labelall" -}}
-{{ $labelsShort := tuple . $cmpDef.name | include "ltutil.labelshortall" -}}
-{{ $name := .Values.serviceAccountName }}
+{{ $labels := tuple . $cmpDef.name | include "ltutil.labelall" . -}}
+{{ $labelsShort := tuple . $cmpDef.name | include "ltutil.labelshortall" . -}}
+{{ $name := include "postgres-operator.serviceAccountName" . -}}
 apiVersion: v1
 kind: Service
 metadata:
