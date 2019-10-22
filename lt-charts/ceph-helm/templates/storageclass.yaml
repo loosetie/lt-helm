@@ -23,6 +23,7 @@ kind: StorageClass
 metadata:
     name: {{ .Values.storageclass.name }}
 provisioner: {{ .Values.storageclass.provisioner }}
+allowVolumeExpansion: true
 parameters:
     monitors: {{ tuple "ceph_mon" "internal" "mon" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" }}
     adminId: {{ .Values.storageclass.admin_id }}

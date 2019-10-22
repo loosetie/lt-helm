@@ -51,6 +51,7 @@ kind: StorageClass
 metadata:
   name: {{ $scDef.name }}
 provisioner: {{ $scDef.provisioner }}
+allowVolumeExpansion: true
 parameters:
   {{- if empty $def.conf.ceph.config.global.mon_host }}
   monitors: {{ printf "%s.%s.svc.cluster.local:%1.f" "ceph-mon" .Release.Namespace $def.network.port.mon | quote }}
